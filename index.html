@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>routeme</title>
+</head>
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBa-nHNdKcoqU6H4ZSOJn73ogQxouGwrSA"></script>
+<style type="text/css">
+    body{margin:0;padding:2em;background-color:#272F32;color:#DAEAEF}
+</style>
+<script>
+var directionsService;
+var waypointCounter;
+
+function GetDirections() {
+    waypoints = $(".stops :text").map(
+        function() {
+            return $.trim($(this).val());
+        }).get().filter(
+        function(val) {
+            return val;
+        }).map(
+        function(val) {
+            return {
+                location: val
+            };
+        })
+
+    var request = {
+        origin: $("#start").val(),
+        destination: $("#final ").val(),
+        waypoints: waypoints,
+        travelMode: google.maps.TravelMode.DRIVING,
+        optimizeWaypoints: true
+    };
+
+    //Make request and provide a callback method
+    directionsService.route(request, function(response, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+            var addrs = [];
+            addrs.push(response.routes[0].legs[0].start_address)
+            for (var i = 0; i < response.routes[0].legs.length; i++) {
+                addrs.push(response.routes[0].legs[i].end_address)
+            }
+            addrs = addrs.join("/")
+            rooturl = "https://www.google.com/maps/dir";
+
+            // I wan to keep the values they've entered available for editing.
+            // If I redirect I want to have these fields, even the dynamic ones,
+            // saved.  If I do the popup (currently implemented) the user has to
+            // agree to popups.
+            window.open([rooturl, addrs].join("/"))
+        } else {
+            $(".container").append('<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Error</strong> '+status+'</div>')
+        }
+    });
+}
+
+$(document).on('click', '#sameAsStart', function() {
+    if ($(this).is(':checked')) {
+        $('#final').val($("#start").val());
+        $('#final').prop("disabled", true);
+    } else {
+        $('#final').prop("disabled", false);
+    }
+});
+
+$(document).on('focus', 'div.dynamicGroup div.input-group:last-child input', function() {
+    // Max of 8 waypoints with my api limit
+    numWaypoints = $(this).parent().parent().children().length
+    if (numWaypoints >= 8) {
+        return
+    }
+
+    var sInputGroupHtml = $(this).parent().html();
+    var sInputGroupClass = $(this).parent().attr('class');
+    $(this).parent().parent().append('<div class="' + sInputGroupClass + '">' + sInputGroupHtml + '</div>');
+});
+
+$(document).on('click', 'div.dynamicGroup .input-group-addon-remove', function() {
+    $(this).parent().remove();
+});
+
+$(document).ready(function() {
+    directionsService = new google.maps.DirectionsService();
+});
+</script>
+<div class="container">
+    <h1 class="text-center">routeme</h1>
+    <p class="text-center">Simply find the shortest route</p>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+                <label for="start">Starting address</label>
+                <input type="text" class="form-control address" aria-describedby="basic-addon1" id="start">
+            </div>
+        </div>
+
+        <br />
+
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+                <label for="final">Final address</label>
+                <div class="input-group">
+                    <input type="text" class="form-control address" aria-describedby="basic-addon1" id="final">
+                    <span class="input-group-addon"><input type="checkbox" aria-label="..." id="sameAsStart" > Same as above</span>
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <br />
+        <br />
+
+        <div class="row stops">
+            <div class="dynamicGroup col-sm-10 col-sm-offset-1">
+                <label>Stops (in any order)</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="stop" placeholder="Optional">
+                    <span class="input-group-addon input-group-addon-remove">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <br />
+
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+                <button id="broute" class="btn btn-primary btn-block routeme" type="button" onclick="GetDirections()">route me</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+</html>
