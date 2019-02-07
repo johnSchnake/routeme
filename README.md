@@ -1,6 +1,9 @@
 # routeme
 [routeme](http://routeme.johnschnake.apcera-platform.io)
 
+*NOTE*
+This was just a fun sample app for a friend and is no longer maintained. Nor does the apcera-platform link work. Nor does the Apcera company exist any longer. Long live k8s.
+
 Optimize a user's route to a series of waypoints utilizing the Google Maps API.
 Up to 8 waypoints supported.
 
